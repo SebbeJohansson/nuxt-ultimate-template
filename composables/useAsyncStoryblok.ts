@@ -1,15 +1,17 @@
-// import { useAsyncData, useState, onMounted } from '#imports';
 import { useStoryblokApi, useStoryblokBridge } from '@storyblok/vue';
-// https://github.com/storyblok/storyblok-nuxt/pull/280
-import type { ISbStoryData, ISbError, ISbResult } from '@storyblok/vue';
+import type {
+  ISbStoriesParams, StoryblokBridgeConfigV2, ISbStoryData, ISbError, ISbResult,
+} from '@storyblok/vue';
+import {
+  useAsyncData, useState, onMounted, createError,
+} from '#imports';
 
 export const useCustomAsyncStoryblok = async (
   url: string,
-  apiOptions = {},
-  bridgeOptions = {},
+  apiOptions: ISbStoriesParams = {},
+  bridgeOptions: StoryblokBridgeConfigV2 = {},
 ) => {
   const uniqueKey = `${JSON.stringify(apiOptions)}${url}`;
-  // https://github.com/storyblok/storyblok-nuxt/pull/280
   const story = useState<ISbStoryData>(`${uniqueKey}-state`, () => ({} as ISbStoryData));
   const storyblokApiInstance = useStoryblokApi();
 
@@ -23,21 +25,16 @@ export const useCustomAsyncStoryblok = async (
     }
   });
 
-  await useAsyncData<ISbResult, ISbError>(
+  const { data, error } = await useAsyncData<ISbResult, ISbError>(
     `${uniqueKey}-asyncdata`,
-    async () => await storyblokApiInstance.get(`cdn/stories/${url}`, apiOptions),
-  ).then((response) => {
-    const { data, error } = response;
-    const storyblokData = data.value as ISbResult;
-    const storyblokError = error.value as ISbError;
-    if (storyblokError) {
-      if (storyblokError.response.status >= 400 && storyblokError.response.status < 600) {
-        throw new Error(storyblokError.message.message);
-      }
-    }
-    story.value = storyblokData.data.story;
-  }).catch((error) => {
-    console.error('error', error);
-  });
+    () => storyblokApiInstance.get(`cdn/stories/${url}`, apiOptions),
+  );
+
+  if (error.value?.response.status >= 400 && error.value?.response.status < 600) {
+    throw createError({ statusCode: error.value?.response.status, statusMessage: error.value?.message.message });
+  }
+
+  story.value = data.value?.data.story;
+
   return story;
 };
