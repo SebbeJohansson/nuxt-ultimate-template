@@ -1,4 +1,4 @@
-import { useStoryblokApi, useStoryblokBridge } from '@storyblok/vue';
+import { useStoryblokBridge } from '@storyblok/vue';
 import type {
   ISbStoriesParams, StoryblokBridgeConfigV2, ISbStoryData, ISbError, ISbResult,
 } from '@storyblok/vue';
@@ -11,7 +11,6 @@ export const useCustomAsyncStoryblok = async (
 ) => {
   const uniqueKey = `${JSON.stringify(apiOptions)}${url}`;
   const story = useState<ISbStoryData>(`${uniqueKey}-state`, () => ({} as ISbStoryData));
-  const storyblokApiInstance = useStoryblokApi();
 
   onMounted(() => {
     if (story.value && story.value.id) {
