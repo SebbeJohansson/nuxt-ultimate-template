@@ -2,9 +2,7 @@ import { useStoryblokApi, useStoryblokBridge } from '@storyblok/vue';
 import type {
   ISbStoriesParams, StoryblokBridgeConfigV2, ISbStoryData, ISbError, ISbResult,
 } from '@storyblok/vue';
-import {
-  useAsyncData, useState, onMounted, createError,
-} from '#imports';
+import { stringify } from 'storyblok-js-client/source/helpers';
 
 export const useCustomAsyncStoryblok = async (
   url: string,
@@ -25,9 +23,14 @@ export const useCustomAsyncStoryblok = async (
     }
   });
 
+  // const { data, error } = await useAsyncData<ISbResult, ISbError>(
+  //   `${uniqueKey}-asyncdata`,
+  //   () => storyblokApiInstance.get(`cdn/stories/${url}`, apiOptions),
+  // );
+  console.log('route: ', `/api/storyblok/${url}?${stringify(apiOptions)}`);
   const { data, error } = await useAsyncData<ISbResult, ISbError>(
     `${uniqueKey}-asyncdata`,
-    () => storyblokApiInstance.get(`cdn/stories/${url}`, apiOptions),
+    () => $fetch(`/api/storyblok/${url}?${stringify(apiOptions)}`),
   );
 
   if (error.value?.response.status >= 400 && error.value?.response.status < 600) {
