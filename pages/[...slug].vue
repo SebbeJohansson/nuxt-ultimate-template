@@ -25,14 +25,18 @@
   const version = isPreview ? 'draft' : 'published';
 
   const story = ref({} as ISbStoryData);
-  await useCustomAsyncStoryblok(currentRoute.path, {
-    version,
-    language: calculatedLocale,
-    resolve_relations: 'popular-articles.articles',
-  }).then((response) => {
-    if (!response) { return; }
-    story.value = response.value;
-  });
+  try {
+    await useAsyncStoryblok(currentRoute.path, {
+      version,
+      language: calculatedLocale,
+      resolve_relations: 'popular-articles.articles',
+    }).then((response) => {
+      if (!response) { return; }
+      story.value = response.value;
+    });
+  } catch (error) {
+    console.log(error);
+  }
 </script>
 
 <template>
